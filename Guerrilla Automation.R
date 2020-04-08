@@ -22,11 +22,10 @@ main = function(){
   
 }
 
-
-#Returns Input Control from Process Spreadsheet
-# filepath - the file path to the Process Spreadsheet
-import_input_control = function(filepath = "Excel Files/Process Spreadsheet.xlsx"){
-
+#Returns the Input Control
+# filepath - the file path to the Input Control spreadsheet
+import_input_control = function(filepath = "Excel Files/Input Control.xlsx"){
+  library(readxl)
   
   #9001 is chosen arbitrarily, we just need a large number and 9001 is OVER 9000!!!
   input_control = read_excel(filepath, sheet = "Input Control",range="B4:D9001")
@@ -41,12 +40,12 @@ import_input_control = function(filepath = "Excel Files/Process Spreadsheet.xlsx
 #Returns a list with two data frames: input_control - tracks the excel input files, input_data - contains the granular input data
 # input_control - dataframe which tracks inputs with columns "Filepath", "Sheet", and "Range"
 gather_input_data = function(input_control = import_input_control()){
-  
+  library(readxl)
   #Using a list to store input data because lists can store multiple data frames
   #One data frame will show which Excel files imported successfully (+if not: why not?) and the other will have the input data.
   input_list = list()
   
-  #initialize data frame to stor input data
+  #initialize data frame to store input data
   input_data = data.frame(matrix(nrow = 0, ncol = 5))
   names(input_data) = c("Filepath", "Sheet", "Range","Account Number", "Amount")
   
@@ -96,8 +95,8 @@ gather_input_data = function(input_control = import_input_control()){
   input_control = cbind(input_control, File_Is_Good, Error_Message)
   
   #Assign the appropriate data frames to the input_list
-  input_list[[1]] = input_control
-  input_list[[2]] = input_data
+  input_list[["input_control"]] = input_control
+  input_list[["input_data"]] = input_data
   
   return(input_list)
 }
@@ -107,14 +106,16 @@ gather_input_data = function(input_control = import_input_control()){
 # input_list[[2]] - dataframe with input data from excel input files
 aggregate_input_data = function(input_list = gather_input_data()){
   
+  library(dplyr)
+  
   #initialize list to store output data - a list will be helpful for interacting with writexl
   aggregate_list = list()
   
   #first list item: a report on which input files came through properly
-  aggregate_list[["input_control"]] = input_list[[1]]
+  aggregate_list[["input_control"]] = input_list[["input_control"]]
   
   #second list item: the input data itself
-  aggregate_list[["input_data"]] = input_list[[2]]
+  aggregate_list[["input_data"]] = input_list[["input_data"]]
   
   #third list item: a summary of the data; I use the British spelling of 'summarise' because it makes me feel more intelligent (though either spelling works).
   aggregate_list[["summary"]] = data.frame(input_list[[2]] %>% group_by(`Account Number`) %>% summarise(Amount = sum(Amount)))
@@ -124,9 +125,11 @@ aggregate_input_data = function(input_list = gather_input_data()){
 
 #Output the results into a single excel file
 output_results = function(aggregate_list = aggregate_input_data()){
+  library(writexl)
   
-  write_xlsx(aggregate_list, "./Excel Files/R Outputs/Results.xlsx")
-  
+  #Alternate version:
+  #write_xlsx(aggregate_list, paste("./Excel Files/R Output/Results ", format(Sys.time(), "%Y%m%d %s"), ".xlsx", sep=""))
+  write_xlsx(aggregate_list, "./Excel Files/R Output/Results.xlsx")
 }
 
 
