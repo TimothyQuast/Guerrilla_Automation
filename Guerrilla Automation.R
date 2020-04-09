@@ -19,7 +19,6 @@ main = function(){
   aggregate_list = aggregate_input_data(input_list)
   output_results(aggregate_list)
   
-  
 }
 
 #Returns the Input Control
